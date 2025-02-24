@@ -2,18 +2,21 @@ CC = gcc
 CFLAGS = -Wall -Werror -g -I./utils/include -I./include
 LDFLAGS = 
 SOURCES = src/main.c utils/src/linkedlist.c src/hash_table.c
-OBJECTS = $(SOURCES:.c=.o)
-TARGET = main
+OBJECTS = $(SOURCES:%.c=build/%.o)
+TARGET = build/out/main
 
-all: $(TARGET)
+all: build_dir $(TARGET)
+
+build_dir:
+	mkdir -p build build/out build/src build/utils/src
 
 $(TARGET): $(OBJECTS)
 	$(CC) $(CFLAGS) -o $(TARGET) $(OBJECTS) $(LDFLAGS)
 
-%.o: %.c
+build/%.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(OBJECTS) $(TARGET)
+	rm -rf build
 
-.PHONY: all clean
+.PHONY: all clean build_dir
