@@ -14,7 +14,7 @@
  * @param compareFunction The function to compare keys
  * @return A pointer to the created HashTable
  */
-HashTable *createHashTable(int capacity, int (*hashFunction)(void *keys), int (*compareFunction)(void *key1, void *key2))
+HashTable *createHashTable(int capacity, int (*hashFunction)(Key), int (*compareFunction)(Key, Key))
 {
     HashTable *hash_table = (HashTable *)malloc(sizeof(HashTable));
     if (hash_table == NULL)
@@ -48,13 +48,27 @@ HashTable *createHashTable(int capacity, int (*hashFunction)(void *keys), int (*
  * @param value The value to be inserted
  * @return 0 if successful, -1 otherwise
  */
-int insert(HashTable *table, void *key, void *value)
+int insert(HashTable *table, Key key, Value value)
 {
     if (table == NULL)
     {
         return -1;
     }
     int index = table->hashFunction(key) % table->capacity;
+    // check if key exists in the table
+    Node *current = table->table[index]->head->next;
+    while (current != table->table[index]->tail)
+    {
+        KeyValuePair *pair = (KeyValuePair *)current->data;
+        if (table->compareFunction(pair->key, key))
+        {
+            pair->value = value;
+            return 0;
+        }
+        current = current->next;
+    }
+
+    // Create a new key-value pair
     KeyValuePair *pair = (KeyValuePair *)malloc(sizeof(KeyValuePair));
     if (pair == NULL)
     {
@@ -76,8 +90,9 @@ int insert(HashTable *table, void *key, void *value)
  * @param key The key for which the value is to be retrieved
  * @return The value corresponding to the key, NULL otherwise
  */
-void *get(HashTable *table, void *key)
+Value *get(HashTable *table, Key key)
 {
+    
     if (table == NULL)
     {
         return NULL;
@@ -89,7 +104,7 @@ void *get(HashTable *table, void *key)
         KeyValuePair *pair = (KeyValuePair *)current->data;
         if (table->compareFunction(pair->key, key))
         {
-            return pair->value;
+            return &(pair->value);
         }
         current = current->next;
     }
@@ -102,7 +117,7 @@ void *get(HashTable *table, void *key)
  * @param key The key to be removed
  * @return 0 if successful, -1 otherwise
  */
-int removeKey(HashTable *table, void *key)
+int removeKey(HashTable *table, Key key)
 {
     if (table == NULL)
     {
