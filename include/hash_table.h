@@ -50,3 +50,9 @@ Value *get(HashTable *table, Key key);
  * @return 0 if successful, -1 otherwise
  */
 int removeKey(HashTable *table, Key key);
+
+/**
+ * @brief Destroy the HashTable and free all associated memory
+ * @param table The HashTable to destroy
+ */
+void destroyHashTable(HashTable *table);

@@ -4,6 +4,7 @@
 #include "linkedlist.h"
 #include "hash_table.h"
 #include <stdlib.h>
+#include <stdint.h>
 
 
 
@@ -16,6 +17,14 @@
  */
 HashTable *createHashTable(int capacity, int (*hashFunction)(Key), int (*compareFunction)(Key, Key))
 {
+    /* validate capacity before allocating the table structure */
+    if (capacity <= 0) {
+        return NULL;
+    }
+    /* check for multiplication overflow before allocating the table */
+    if ((size_t)capacity > SIZE_MAX / sizeof(LinkedList *)) {
+        return NULL;
+    }
     HashTable *hash_table = (HashTable *)malloc(sizeof(HashTable));
     if (hash_table == NULL)
     {
@@ -28,6 +37,7 @@ HashTable *createHashTable(int capacity, int (*hashFunction)(Key), int (*compare
     hash_table->table = (LinkedList **)calloc(capacity, sizeof(LinkedList *));
     if (hash_table->table == NULL)
     {
+        free(hash_table);
         return NULL;
     }
     for (int i = 0; i < capacity; i++)
@@ -35,6 +45,22 @@ HashTable *createHashTable(int capacity, int (*hashFunction)(Key), int (*compare
         hash_table->table[i] = createLinkedList();
         if (hash_table->table[i] == NULL)
         {
+            /* free previously created lists and the table */
+            for (int j = 0; j < i; j++) {
+                LinkedList *list = hash_table->table[j];
+                if (list) {
+                    /* free nodes and list structure allocated by createLinkedList */
+                    Node *cur = list->head;
+                    while (cur) {
+                        Node *next = cur->next;
+                        free(cur);
+                        cur = next;
+                    }
+                    free(list);
+                }
+            }
+            free(hash_table->table);
+            free(hash_table);
             return NULL;
         }
     }
@@ -54,7 +80,8 @@ int insert(HashTable *table, Key key, Value value)
     {
         return -1;
     }
-    int index = table->hashFunction(key) % table->capacity;
+    int hash = table->hashFunction(key);
+    int index = (hash % table->capacity + table->capacity) % table->capacity;
     // check if key exists in the table
     Node *current = table->table[index]->head->next;
     while (current != table->table[index]->tail)
@@ -78,6 +105,7 @@ int insert(HashTable *table, Key key, Value value)
     pair->value = value;
     if (addNodeAtHead(table->table[index], pair) == -1)
     {
+        free(pair);
         return -1;
     }
     table->size++;
@@ -97,7 +125,8 @@ Value *get(HashTable *table, Key key)
     {
         return NULL;
     }
-    int index = table->hashFunction(key) % table->capacity;
+    int hash = table->hashFunction(key);
+    int index = (hash % table->capacity + table->capacity) % table->capacity;
     Node *current = table->table[index]->head->next;
     while (current != table->table[index]->tail)
     {
@@ -123,20 +152,48 @@ int removeKey(HashTable *table, Key key)
     {
         return -1;
     }
-    int index = table->hashFunction(key) % table->capacity;
+    int hash = table->hashFunction(key);
+    int index = (hash % table->capacity + table->capacity) % table->capacity;
     Node *current = table->table[index]->head->next;
     while (current != table->table[index]->tail)
     {
         KeyValuePair *pair = (KeyValuePair *)current->data;
         if (table->compareFunction(pair->key, key))
         {
-            removeNode(table->table[index], current);
+            /* free stored pair then remove the node */
+            free(pair);
+            if (removeNode(table->table[index], current) == -1) {
+                return -1;
+            }
             table->size--;
             return 0;
         }
         current = current->next;
     }
     return -1;
+}
+
+void destroyHashTable(HashTable *table)
+{
+    if (table == NULL) return;
+    for (int i = 0; i < table->capacity; i++) {
+        LinkedList *list = table->table[i];
+        if (list == NULL) continue;
+        /* free all nodes and their data */
+        Node *cur = list->head;
+        while (cur) {
+            Node *next = cur->next;
+            if (cur->data) {
+                /* head and tail have NULL data in createLinkedList */
+                free(cur->data);
+            }
+            free(cur);
+            cur = next;
+        }
+        free(list);
+    }
+    free(table->table);
+    free(table);
 }
 
 // End of file hash_table.c
