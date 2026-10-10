@@ -64,7 +64,6 @@ This produces:
 
 - `build/lib/libhash_table.a` — static library
 
-Note: `build/` is ignored by `.gitignore`; prebuilt artifacts under `prebuilt/` are tracked in the repository.
 
 Clean
 -----
@@ -73,12 +72,8 @@ Clean
 make clean
 ```
 
-License
--------
-No license specified.
-
-Library-only / Prebuilt
------------------------
+Prebuilt Library
+-----------------
 
 If you only need the library, run:
 
