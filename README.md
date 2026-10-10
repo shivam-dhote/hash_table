@@ -5,6 +5,19 @@ hash table in C
 
 Simple C hash-table library.
 
+API
+---
+
+Public header: include/hash_table.h
+
+Link against the library (ensure the linker can find libhash_table.a and link with `-lhash_table`).
+
+Usage
+-----
+
+Include the public header and link against the prebuilt library (ensure the header path and library path are provided to your compiler/linker).
+
+
 Build
 -----
 
@@ -18,68 +31,15 @@ This produces:
 
 - `build/lib/libhash_table.a` — static library
 
-API
----
-
-Public header: include/hash_table.h
-
-Link against the library (ensure the linker can find libhash_table.a and link with `-lhash_table`).
 
 Clean
 -----
-
-```sh
-make clean
-```
-
-
-Prebuilt Library
------------------
-
-If you only need the library (no example), run:
-
-# hash_table
-
-API
----
-
-Public header: include/hash_table.h
-
-Usage
------
-
-Include the public header and link against the prebuilt library (ensure the header path and library path are provided to your compiler/linker).
-
-
-Build
------
-
-To build the static library run (default):
-
-```sh
-make
-```
-
-This produces:
-
-- `build/lib/libhash_table.a` — static library
-
-
-Clean
------
-
 ```sh
 make clean
 ```
 
 Prebuilt Library
 -----------------
-
-If you only need the library, run:
-
-```sh
-make lib-only
-```
 
 To produce a prebuilt artifact for the current platform (copied to `prebuilt/<platform>`), run:
 
